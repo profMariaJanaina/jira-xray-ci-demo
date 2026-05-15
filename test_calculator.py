@@ -1,6 +1,6 @@
 from calculator import soma, subtrai
-
-def test_QTS-6_Soma():
+@pytest.mark.xray(test_key="QTS-6")
+def test_QTS6_Soma():
     assert soma(2,3) == 5
     
 def test_QT9_subtrai():
