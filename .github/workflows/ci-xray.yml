@@ -1,0 +1,32 @@
+name: CI/CD - Jira Xray Integration
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependências
+        run: |
+         pip install pytest
+      - name: Executar testes e gerar relatório JUnit
+        run: |
+          pytest --junitxml=report.xml
+      - name: Autenticar no Xray
+        id: xray_auth
+        run: |
+          RESPONSE=$(curl -s -X POST https://xray.cloud.getxray.app/api/v2/authenticate \
+          -H "Content-Type: application/json" \
+          -d '{"client_id":"${{ secrets.XRAY_CLIENT_ID }}","client_secret":"${{ secrets.XRAY_CLIENT_SECRET }}"}')
+          TOKEN=$(echo $RESPONSE | tr -d '"')
+          echo "token=$TOKEN" >> $GITHUB_OUTPUT
+      - name: Upload results to specific Test Execution
+        run: |
+          curl -X POST https://xray.cloud.getxray.app/api/v2/import/execution/junit?testExecutionKey=QA-3 \
+          -H "Authorization: Bearer ${{ steps.xray_auth.outputs.token }}" \
+          -F "file=@report.xml"
