@@ -28,17 +28,21 @@ jobs:
       - name: Autenticar no Xray
         id: xray_auth
         run: |
-          RESPONSE=$(curl -s -X POST "https://xray.cloud.getxray.app/api/v2/authenticate" \
-          -H "Content-Type: application/json" \
-          -d "{\"client_id\":\"${{ secrets.XRAY_CLIENT_ID }}\",\"client_secret\":\"${{ secrets.XRAY_CLIENT_SECRET }}\"}")
-
-          TOKEN=$(echo $RESPONSE | tr -d '"')
-
+          TOKEN=$(curl -s -X POST "https://xray.cloud.getxray.app/api/v2/authenticate" \
+            -H "Content-Type: application/json" \
+            -d "{\"client_id\":\"${{ secrets.XRAY_CLIENT_ID }}\",\"client_secret\":\"${{ secrets.XRAY_CLIENT_SECRET }}\"}" \
+            | tr -d '\n"')
+      
           echo "token=$TOKEN" >> $GITHUB_OUTPUT
-
-      - name: Upload results to specific Test Execution
+      
+      - name: Debug XML
         run: |
-          curl -X POST "https://xray.cloud.getxray.app/api/v2/import/execution/junit?testExecutionKey=QTS-7" \
-          -H "Authorization: Bearer ${{ steps.xray_auth.outputs.token }}" \
-          -H "Content-Type: text/xml" \
-          --data-binary @report.xml
+          ls -l report.xml
+          cat report.xml
+      
+      - name: Upload Xray
+        run: |
+          curl -v -X POST "https://xray.cloud.getxray.app/api/v2/import/execution/junit?testExecutionKey=QTS-7" \
+            -H "Authorization: Bearer ${{ steps.xray_auth.outputs.token }}" \
+            -H "Content-Type: text/xml" \
+            --data-binary @report.xml
