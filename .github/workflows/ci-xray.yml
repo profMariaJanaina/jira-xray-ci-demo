@@ -41,4 +41,4 @@ jobs:
           curl -X POST "https://xray.cloud.getxray.app/api/v2/import/execution/junit?testExecutionKey=QTS-7" \
           -H "Authorization: Bearer ${{ steps.xray_auth.outputs.token }}" \
           -H "Content-Type: text/xml" \
-          --data @report.xml
+          --data-binary @report.xml
